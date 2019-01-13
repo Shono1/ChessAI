@@ -14,6 +14,7 @@ import berserk
 import requests as r
 import time as t
 from contextlib import suppress
+import random
 
 #from IPython.display import SVG
 #LAYER_NUM = input("Layers: ") #Search Depth
@@ -42,7 +43,7 @@ GAME_ID = input("game ID: ")
 ENDGAME = False
 
 #LICHESS SETUP
-session = berserk.TokenSession("[ENTER SESSION TOKEN]")
+session = berserk.TokenSession("[YOUR TOKEN HERE]") #<----INSERT TOKEN HERE
 lichess = berserk.Client(session)
 handle = berserk.formats.FormatHandler(".json")
 bots = berserk.clients.Bots(session, "https://lichess.org/")
@@ -251,11 +252,11 @@ def delta_score(board: chess.Board, node: Node):
                 connected_chain_positive_slope = False
                 connected_chain_negative_slope = False
                 try:
-                    if (node.brd.piece_at(piece - 9).color == True) && (node.brd.piece_at(piece + 9).color == True):
+                    if (node.brd.piece_at(piece - 9).color == True) & (node.brd.piece_at(piece + 9).color == True):
                         connected_chain_positive_slope = True
                         node.score += 0.3
 
-                    elif (node.brd.piece_at(piece - 7).color == True) && (node.brd.piece_at(piece + 7).color == True):
+                    elif (node.brd.piece_at(piece - 7).color == True) & (node.brd.piece_at(piece + 7).color == True):
                         connected_chain_negative_slope = True
                         node.score += 0.3
                 except:
@@ -427,7 +428,7 @@ tre.branch_from_node(root, 0)
 
 print(tre.tree)
 
-depth = int(input("Depth: "))
+depth = int(input("Depth: ")) - 1
 for dep in range(0, depth):
     tre.tree.append([])
 
@@ -524,29 +525,50 @@ def wait_for_lichess(move):
     t.sleep(3)
     while True:
         moves = lichess_moves_data()
-        if moves[-1] == mv:
+        if moves[-1] == move:
             t.sleep(1)
         else:
             break
 
-def is_endgame():
-    if len(list(test_board.piece_map())) < 20:
-        global ENDGAME
-        ENDGAME = True
-        for node in tre.tree[depth]:
-            tre.branch_from_node(node, depth)
+def make_random_move():
+    moves = list(test_board.legal_moves);
+    move = random.choice(moves)
+    test_board.push(move)
+    lichess.bots.make_move(GAME_ID, move)
+    print(test_board)
+    return move
 
-        for node in tre.tree[depth + 1]:
-            tre.branch_from_node(node, depth + 1)
+
+# def is_endgame():
+#     if len(list(test_board.piece_map())) < 20:
+#         global ENDGAME
+#         ENDGAME = True
+#         for node in tre.tree[depth]:
+#             tre.branch_from_node(node, depth)
+#
+#         for node in tre.tree[depth + 1]:
+#             tre.branch_from_node(node, depth + 1)
 
 #Driver
 if turn:
+    if depth == 0:
+        while True:
+            made_move = make_random_move()
+            wait_for_lichess(made_move)
+            move_from_lichess(lichess_moves_data())
+            print(test_board)
+
+            # if not ENDGAME:
+            #     is_endgame()
+
+
     while True:
         #This AI's Turn
-        if ENDGAME == False:
-            is_endgame() #Check for whether to use extended endgame tree
+        # if ENDGAME == False:
+        #     is_endgame() #Check for whether to use extended endgame tree
 
         mv = make_move()
+
         if test_board.is_game_over():
             print("Game Over! I Win")
             break
