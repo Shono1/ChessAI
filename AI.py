@@ -43,7 +43,7 @@ GAME_ID = input("game ID: ")
 ENDGAME = False
 
 #LICHESS SETUP
-session = berserk.TokenSession("[YOUR TOKEN HERE]") #<----INSERT TOKEN HERE
+session = berserk.TokenSession("qtC39Sb45qvMgyLS")
 lichess = berserk.Client(session)
 handle = berserk.formats.FormatHandler(".json")
 bots = berserk.clients.Bots(session, "https://lichess.org/")
@@ -122,11 +122,11 @@ def score(bord: chess.Board, move):
                     break
 
     #Pre-move misc
-    if board.is_check():
-        if current_turn == 0:
-            scr += 5
-        else:
-            scr -= 5
+    # if board.is_check():
+    #     if current_turn == 0:
+    #         scr += 5
+    #     else:
+    #         scr -= 5
 
     #Freedom of board
     # board.push(move) #New board with testing move
@@ -215,9 +215,7 @@ def delta_score(board: chess.Board, node: Node):
                     node.score -= 0.1
                     #print("score!")
 
-            # Agression Scoring (Scores conversely)
-            attacked_by = list(node.brd.attackers(False, piece))
-            node.score += len(attacked_by) * 0.02
+
 
         #Scoring for white pieces
         for piece in node_pieces_white:
@@ -231,9 +229,13 @@ def delta_score(board: chess.Board, node: Node):
                     node.score += 0.1
                     #print("score positive!")
 
-            #Agression Scoring (Scores conversely)
-            attacked_by = list(node.brd.attackers(True, piece))
-            node.score -= len(attacked_by) * 0.02
+    #Agression Scoring (Scores conversely)
+    attacked_by = list(node.brd.attackers(True, piece))
+    node.score -= len(attacked_by) * 0.02
+
+    # Agression Scoring (Scores conversely)
+    attacked_by = list(node.brd.attackers(False, piece))
+    node.score += len(attacked_by) * 0.02
 
     #Mobilization Incentive (Board Freedom) ADDED V 0.2---------------------
     free_moves = len(list(node.brd.legal_moves))
@@ -284,9 +286,9 @@ def delta_score(board: chess.Board, node: Node):
 
     if node.brd.is_check():
         if node.parent.brd.turn == True:
-            node.score += 1.5
+            node.score += 0.2
         else:
-            node.score -= 1.5
+            node.score -= 0.2
 
 
     #King Defence
@@ -436,6 +438,7 @@ for dep in range(0, depth):
        tre.branch_from_node(node, (dep + 1))
 
 print("debugging stop")
+
 #minimax(tre)
 
 # while(True):
@@ -580,31 +583,3 @@ if turn:
         if test_board.is_game_over():
             print("Game Over! You Lose")
             break
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# test_tree = MiniMax(4, False)
-# test_board = chess.Board()
-# tre = test_tree.tree(test_board)
-# print(tre)
-
-
-
-
-
-
-
